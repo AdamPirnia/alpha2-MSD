@@ -30,5 +30,18 @@ compute centers of mass, and finally calculate MSD & the non-Gaussian α₂(t).
 
 All scripts follow the pattern:
 
+## How to run (command example)
 ```bash
-python SCRIPT.py --baseDir BASEDIR --INdir INDIR --OUTdir OUTDIR  [other args…]
+python3 run_pipeline.py \
+  --baseDir   /path/to/sim \
+  --INdir     trajectories \
+  --OUTdir    results \
+  --num_dcd   6 \
+  --num_mols  1000 \
+  --numFrames 1000 \
+  --psf       system.psf \
+  --dcd       traj.dcd \
+  --vmd       /usr/local/bin/vmd \
+  --xsc       restart_equil.xsc \
+  --num_atoms 3000 \
+  --masses    16.00 1.008 1.008
