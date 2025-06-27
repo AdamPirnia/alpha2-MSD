@@ -10,9 +10,10 @@ def call_script(script, args):
     print(f"\n→ Running: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
+
 def main():
     p = argparse.ArgumentParser(
-        description="One-shot pipeline: extract → unwrap → COM → alpha2/MSD"
+        description="One-shot pipeline: extract → unwrap → (optional COM) → alpha2/MSD"
     )
     # common args
     p.add_argument("--baseDir",   required=True, help="Top-level directory")
@@ -58,16 +59,29 @@ def main():
     ]
     call_script("unwrap_coords.py", step2)
 
-    # 3) COM_calc.py
-    step3 = common + [
-        "--num_atoms", str(args.num_atoms),
-        "--masses",   *map(str, args.masses),
-    ]
-    call_script("COM_calc.py", step3)
+    # Determine whether to skip COM_calc
+    if args.num_atoms == args.num_mols:
+        print("Single-particle mode detected: skipping COM_calc step.")
+        # Unwrapper output dir for alpha2/MSD
+        alpha2_in = os.path.join(args.OUTdir, "unwrapped")
+    else:
+        # 3) COM_calc.py
+        step3 = common + [
+            "--num_atoms", str(args.num_atoms),
+            "--masses",   *map(str, args.masses),
+        ]
+        call_script("COM_calc.py", step3)
+        # COM_calc writes to {OUTdir}/com_data
+        alpha2_in = os.path.join(args.OUTdir, "com_data")
 
     # 4) alpha2_MSD.py
-    step4 = common + [
-        "--numFrames", str(args.numFrames),
+    step4 = [
+        "--baseDir",   args.baseDir,
+        "--INdir",     alpha2_in,
+        "--OUTdir",    args.OUTdir,
+        "--num_dcd",   str(args.num_dcd),
+        "--num_mols",  str(args.num_mols),
+        "--numFrames", str(args.numFrames)
     ]
     call_script("alpha2_MSD.py", step4)
 
